@@ -1,0 +1,148 @@
+/* Full page wrapper */
+.pageWrapper {
+  display: flex;
+  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* --- LEFT SIDE: HERO / BRANDING --- */
+.heroSection {
+  flex: 1;
+  background-color: #1e1e1e; /* Monaco Editor dark theme color */
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+.brandName {
+  font-size: 3rem;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: #8ab4f8; /* Google Blue highlight */
+}
+
+.tagline {
+  font-size: 1.25rem;
+  color: #9aa0a6;
+  margin: 0 0 40px 0;
+  max-width: 450px;
+  line-height: 1.6;
+}
+
+/* Decorative mock code block */
+.mockCodeWindow {
+  background-color: #2d2f34;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #3c4043;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  font-family: "Courier New", Courier, monospace;
+  color: #d4d4d4;
+  max-width: 500px;
+}
+
+.codeKeyword { color: #569cd6; } /* VS Code syntax highlighting colors */
+.codeFunction { color: #dcdcaa; }
+.codeString { color: #ce9178; }
+
+/* --- RIGHT SIDE: LOGIN SECTION --- */
+.loginSection {
+  flex: 1;
+  background-color: #f8f9fa; /* Matches your light theme */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.loginCard {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  border: 1px solid #dadce0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #202124;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: #5f6368;
+  margin: -16px 0 0 0;
+}
+
+.message {
+  color: #ea4335;
+  font-size: 0.9rem;
+  margin: 0;
+  min-height: 20px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 1rem;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 14px;
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 8px;
+}
+
+.submitBtn:hover {
+  background-color: #1557b0;
+}
+
+/* Responsive: Stack columns on smaller screens */
+@media (max-width: 900px) {
+  .pageWrapper {
+    flex-direction: column;
+  }
+  .heroSection {
+    padding: 40px 20px;
+    align-items: center;
+    text-align: center;
+  }
+  .mockCodeWindow {
+    display: none; /* Hide code block on mobile to save space */
+  }
+}

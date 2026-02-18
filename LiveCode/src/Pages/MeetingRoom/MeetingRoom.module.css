@@ -1,0 +1,158 @@
+/* --- GLOBAL & WRAPPERS --- */
+.meetingWrapper {
+  height: 90vh;
+  width: 100vw;
+  background-color: #ffffff; /* Crisp white background */
+  color: #202124; /* Dark text for readability */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+}
+
+.panelGroup {
+  height: 100%;
+  width: 100%;
+}
+
+/* --- WAITING ROOM (No remote streams yet) --- */
+.waitingRoomContainer {
+  height: 90vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8f9fa; /* Very light gray to make the video pop */
+  gap: 24px;
+}
+
+.waitingVideo {
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 12px;
+  background-color: #e8eaed;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1); /* Softer shadow for light theme */
+  transform: scaleX(-1);
+}
+
+/* --- ACTIVE MEETING (Left Panel) --- */
+.videoPanel {
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9fa; /* Light gray panel background */
+  padding: 16px;
+  gap: 16px;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Local User Container in Active Meeting */
+.activeLocalContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #dadce0; /* Subtle border */
+}
+
+.localVideo {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+  background-color: #e8eaed;
+  transform: scaleX(-1);
+}
+
+/* Remote Users Grid */
+.remoteContainer {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-auto-rows: min-content;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Custom scrollbar for remote container */
+.remoteContainer::-webkit-scrollbar {
+  width: 6px;
+}
+.remoteContainer::-webkit-scrollbar-thumb {
+  background: #dadce0;
+  border-radius: 4px;
+}
+
+.remoteVideo {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 8px;
+  background-color: #e8eaed;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #dadce0;
+}
+
+/* --- CONTROLS --- */
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.inputControlBtn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff; /* White buttons */
+  border: 1px solid #dadce0;
+  color: #5f6368; /* Dark gray icons */
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.inputControlBtn:hover {
+  background-color: #f1f3f4;
+  transform: translateY(-2px);
+}
+
+.redBack {
+  background-color: #ea4335 !important;
+  border-color: #ea4335 !important;
+  color: #ffffff !important;
+}
+
+.redBack:hover {
+  background-color: #d93025 !important;
+}
+
+.editorPanel {
+  background-color: #ffffff;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.resizeHandle {
+  width: 6px;
+  background-color: #dadce0;
+  transition: background-color 0.2s;
+  cursor: col-resize;
+}
+
+.resizeHandle:hover,
+.resizeHandle:active {
+  background-color: #1a73e8;
+}

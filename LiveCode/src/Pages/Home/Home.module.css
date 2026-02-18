@@ -1,0 +1,76 @@
+.homeHeader {
+  padding: 10px;
+  margin: 40px 100px 30px;
+  border-radius: 10px;
+}
+
+.homeTitle {
+  color: #3fbf8a;
+  font-weight: 700;
+  font-size: 36px;
+  letter-spacing: 0.3px;
+}
+
+.homeSubtitle {
+  color: #6b7280;
+  margin-top: 6px;
+  font-size: 16px;
+}
+
+.homeCards {
+  margin: auto;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  padding: 0px 100px;
+}
+
+.homeCard {
+  padding: 28px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 300px;
+  min-height: 170px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.homeCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+}
+
+.cardTitle {
+  font-weight: 600;
+  font-size: 18px;
+  margin-top: 10px;
+}
+
+.cardIcon {
+  width: 42px;
+  height: 42px;
+  margin-bottom: 8px;
+}
+.cardDescription {
+  font-size: 14px;
+  color: #6b7280;
+}
+.greenBack {
+  background-color: #e8faf1;
+}
+
+.purpleBack {
+  background-color: #f4efff;
+}
+
+.blueBack {
+  background-color: #eaf1ff;
+}
+
+.yellowBack {
+  background-color: #fff7db;
+}

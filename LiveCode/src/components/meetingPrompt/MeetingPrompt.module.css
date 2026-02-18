@@ -1,0 +1,94 @@
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+
+  background-color: rgba(0, 0, 0, 0.5);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 1000;
+}
+
+.modal {
+  background-color: #ffffff;
+  padding: 24px;
+  width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border-radius: 14px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+.modalHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+.closeIcon {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.closeIcon:hover {
+  color: red;
+}
+.meetingInput {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  outline: none;
+}
+.meetingInput:focus {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: right;
+  gap: 10px;
+}
+
+.cancelButton {
+  padding: 8px 16px;
+
+  background-color: transparent;
+  border: 1px solid #d1d5db;
+  color: #374151;
+
+  border-radius: 8px;
+  cursor: pointer;
+
+  transition: background-color 0.2s ease;
+}
+
+.cancelButton:hover {
+  background-color: #f3f4f6;
+}
+
+.joinButton {
+  padding: 8px 16px;
+
+  background-color: #22c55e;
+  color: white;
+  border: none;
+
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: background-color 0.2s ease;
+}
+
+.joinButton:hover {
+  background-color: #16a34a;
+}
