@@ -13,7 +13,6 @@ import jwt from "jsonwebtoken";
 */
 const otpStore = new Map();
 const login = async (req, res) => {
-  console.log("herere");
   let { email } = req.body;
 
   if (!email) {

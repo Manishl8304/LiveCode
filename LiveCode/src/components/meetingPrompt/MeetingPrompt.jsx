@@ -18,12 +18,17 @@ export const MeetingPrompt = (props) => {
     socketId: socket.id,
   };
 
-  console.log("currUser", currUserDetail);
   useEffect(() => {
+    /*
+    Brief: a function to handle an emit message("created-meeting") recieved from server
+    Input: {meetingId}
+    OutPut: None
+    Description: user A requests to create a meeting -> server responds with meeting Id -> user A joins that meeting room -> user A navigate to meetingRoom Page
+    */
     const handleCreatedMeeting = ({ meetingId }) => {
       socket.emit("join-room", {
-        // email: currUserDetail.email,
-        email: "random4038@gmail.com",
+        email: currUserDetail.email,
+        // email: "random4038@gmail.com",
         meetingId: meetingId,
       });
       navigate(`${meetingId}`);
@@ -35,17 +40,26 @@ export const MeetingPrompt = (props) => {
     };
   }, []);
 
+  /*
+    Brief: a function to create meeting
+    Input: None
+    OutPut: None
+    Description: user A requests to create a meeting -> server creates a meeting Id -> sends "created-meeting" message
+    */
   const createInstantMeeting = () => {
-    socket.emit("create-meeting", {
-      // email: currUserDetail.email
-      email: "random4038@gmail.com",
-    });
+    socket.emit("create-meeting");
   };
 
+  /*
+    Brief: a function to join meeting
+    Input: None
+    OutPut: None
+    Description: user B requests to join a meeting -> server adds user B to room-> user B navigate to meetingRoom Page
+    */
   const joinMeeting = () => {
     socket.emit("join-room", {
-      // email: currUserDetail.email,
-      email: "manishaggarwal8304@gmail.com",
+      email: currUserDetail.email,
+      // email: "manishaggarwal8304@gmail.com",
       meetingId: meetingLink,
     });
     navigate(`${meetingLink}`);
@@ -114,6 +128,5 @@ export const MeetingPrompt = (props) => {
       </>
     );
 
-  console.log(props);
   return <div>MeetingPrompt</div>;
 };

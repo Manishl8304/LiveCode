@@ -29,7 +29,7 @@ export const PeerProvider = (props) => {
       }
     };
 
-    // const remoteStream = new MediaStream();
+    // this function is fired when another side of connection adds their stream
     pc.ontrack = (event) => {
       const remoteStream = event.streams[0];
       setRemoteStreams((prev) => {
@@ -43,6 +43,14 @@ export const PeerProvider = (props) => {
     peersRef.current.set(remoteEmail, pc);
   };
 
+  /*
+  Input: remoteEmail(email of new user entered)
+  OutPut: offer
+  Description: 
+   - fetches pc from map
+   - creates offer
+   - stores offer in local Description
+  */
   const createOffer = async ({ remoteEmail }) => {
     const pc = peersRef.current.get(remoteEmail);
     const offer = await pc.createOffer();
@@ -50,6 +58,15 @@ export const PeerProvider = (props) => {
     return offer;
   };
 
+  /*
+  Input: remoteEmail(email of remote user who calls), offer
+  OutPut: answer
+  Description: 
+   - fetches pc from map
+   - sets offer in remote description
+   - creates answer
+   - sets answer in local description
+  */
   const createAnswer = async ({ remoteEmail, offer }) => {
     const pc = peersRef.current.get(remoteEmail);
     await pc.setRemoteDescription(offer);
@@ -57,6 +74,7 @@ export const PeerProvider = (props) => {
     await pc.setLocalDescription(answer);
     return answer;
   };
+
 
   const setAnswer = async ({ fromEmail, answer }) => {
     const pc = peersRef.current.get(fromEmail);
@@ -77,10 +95,8 @@ export const PeerProvider = (props) => {
     setRemoteStreams([]);
   };
   const leaveMeetingPeer = ({ email }) => {
-    console.log(email, "wants to leave");
     const pc = peersRef.current.get(email);
     if (!pc) return;
-    console.log(pc, "pc");
     peersRef.current.delete(email);
     pc.close();
     setRemoteStreams((prev) => prev.filter((stream) => stream.id != email));

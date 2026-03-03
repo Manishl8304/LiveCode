@@ -40,13 +40,15 @@ const LandingPage = () => {
  - nag=vigates to home if otp is verified
  - logs error to console if there's some error
   */
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (!otp) {
       setMessage("Please enter the OTP.");
       return;
     }
     try {
       const res = await verifyOtp(email, otp);
+      window.location.reload();
       navigate("/home");
     } catch (err) {
       console.log(err.message);

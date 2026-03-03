@@ -13,7 +13,6 @@ import { MdVideocam, MdVideocamOff } from "react-icons/md";
 import { MdCallEnd } from "react-icons/md";
 
 export const MeetingRoom = () => {
-  console.log("meeting room");
   const navigate = useNavigate();
 
   const socket = useSocket();
@@ -22,6 +21,8 @@ export const MeetingRoom = () => {
   const [code, setCode] = useState("// Start coding...");
   const isRemoteChange = useRef(false);
 
+  // mystreams
+  const [myStream, setMyStream] = useState(null);
   const [micOn, setMicOn] = useState(false);
   const [camOn, setCamOn] = useState(false);
 
@@ -37,20 +38,28 @@ export const MeetingRoom = () => {
   } = usePeer();
 
   const params = useParams();
-  const [myStream, setMyStream] = useState(null);
   const myVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
 
+  // to fetch media on first mountung of meeting page, as meeting waiting room consists of media
   useEffect(() => {
-    getUserMediaStream();
+    const init = async () => {
+      await getUserMediaStream();
+    };
+    init();
   }, []);
 
+  // set mystream state to myvideo ref
   useEffect(() => {
     if (myVideoRef.current && myStream) {
       myVideoRef.current.srcObject = myStream;
     }
   }, [myStream, myVideoRef]);
 
+  /*
+  - previous stream cleanup if stream changes
+  - cleanup on unmounting of component 
+  */
   useEffect(() => {
     return () => {
       if (myStream) {
@@ -60,9 +69,17 @@ export const MeetingRoom = () => {
   }, [myStream]);
 
   useEffect(() => {
+    /*
+    Brief: a funtion to handle if a new user enter my meeting.
+    Input: email( user joined the meeting)
+    Output: None
+    Description: 
+     - fetches mystream beacuse when sockets were registered myStream was null 
+     - creates new connection
+     - creates an offer
+     - sends offer to new user
+    */
     const handleJoinedRoom = async ({ email }) => {
-      console.log(`email joined this room ${email}`);
-
       const stream = await getUserMediaStream();
       createNewConnection({ remoteEmail: email, stream, socket });
 
@@ -70,19 +87,26 @@ export const MeetingRoom = () => {
       socket.emit("call-user", { email, offer });
     };
 
+    /*
+    Brief: a funtion to handle an incoming call.
+    Input: fromEmail( user who called), offer
+    Output: None
+    Description: 
+     - fetches mystream beacuse when sockets were registered myStream was null 
+     - creates new connection
+     - creates an offer
+     - sends offer to new user
+    */
     const handleIncomingCall = async ({ fromEmail, offer }) => {
-      console.log("incoming call from", fromEmail);
       const stream = await getUserMediaStream();
       createNewConnection({ remoteEmail: fromEmail, stream, socket });
 
       const answer = await createAnswer({ remoteEmail: fromEmail, offer });
-      console.log(answer);
 
       socket.emit("call-accepted", { fromEmail, answer });
     };
 
     const handleCallAccepted = async ({ fromEmail, answer }) => {
-      console.log("call accepted");
 
       await setAnswer({ fromEmail, answer });
     };
@@ -94,6 +118,7 @@ export const MeetingRoom = () => {
     const handleUserLeft = ({ email }) => {
       leaveMeetingPeer({ email });
     };
+
     socket.on("joined-room", handleJoinedRoom);
     socket.on("incoming-call", handleIncomingCall);
     socket.on("call-accepted", handleCallAccepted);
@@ -114,6 +139,18 @@ export const MeetingRoom = () => {
     };
   }, []);
 
+  /*
+  INPUT: None
+  OUTPUT: myStream(current stream of user including audio and video)
+  DESCRIPTION:  
+   - on initial render function is created with myStream = NULL
+   - when called first it fetches stream, then stores in state
+   - gets status of current mic, stores it in state
+   - gets status of current video, stores it in state
+   - return stream
+   - function is created again with mystream = currentStream in storage since dependency has been changed
+   - next time when function is called it just returns without fetching it again as myStream is something now
+  */
   const getUserMediaStream = useCallback(async () => {
     if (myStream) return myStream;
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -138,29 +175,37 @@ export const MeetingRoom = () => {
     });
   };
 
-  ["-"];
-  const toggleMic = () => {
+  /*
+  INPUT: None
+  OUTPUT: None
+  DESCRIPTION:  
+  - toggles current mic in myStream
+  - updates micOn state
+  */
+  const toggleMic = useCallback(() => {
     if (!myStream) return;
-
-    setMicOn(!micOn);
     const audioTrack = myStream.getAudioTracks()[0];
-    console.log("audio", audioTrack);
     if (!audioTrack) return;
 
-    console.log("audio", audioTrack);
+    setMicOn(!micOn);
     audioTrack.enabled = !audioTrack.enabled;
-    console.log("mic", audioTrack.enabled);
-  };
+  }, [myStream, micOn]);
 
-  const toggleCamera = () => {
+  /*
+  INPUT: None
+  OUTPUT: None
+  DESCRIPTION:  
+  - toggles current video in myStream
+  - updates camOn state
+  */
+  const toggleCamera = useCallback(() => {
     if (!myStream) return;
-
-    setCamOn(!camOn);
     const videoTrack = myStream.getVideoTracks()[0];
     if (!videoTrack) return;
 
+    setCamOn(!camOn);
     videoTrack.enabled = !videoTrack.enabled;
-  };
+  }, [myStream, camOn]);
 
   const handleLeaveMeeting = () => {
     socket.emit("leave-meeting", { meetingId: params.meetingId });
@@ -177,13 +222,7 @@ export const MeetingRoom = () => {
   useEffect(() => {
     const handleTabClose = () => {
       socket.emit("leave-meeting", { meetingId: params.meetingId });
-
-      leaveMeeting();
-      if (myStream) {
-        myStream.getTracks().forEach((track) => track.stop());
-        setMyStream(null);
-      }
-      navigate("/home");
+      handleLeaveMeeting();
     };
 
     window.addEventListener("beforeunload", handleTabClose);
@@ -193,8 +232,6 @@ export const MeetingRoom = () => {
     };
   }, []);
 
-  console.log("remoteMeeting", remoteStreams);
-  console.log(myVideoRef);
   return remoteStreams.length == 0 ? (
     <div className={styles.waitingRoomContainer}>
       <video

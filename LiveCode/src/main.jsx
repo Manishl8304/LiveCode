@@ -4,6 +4,7 @@ import App from "./App.jsx";
 import { BrowserRouter } from "react-router-dom";
 import { AuthContextProvider } from "./contexts/authContext.jsx";
 import "./index.css";
+
 /* 
 1) createRoot
  - it is a function imported from "react-dom/client" module or file
@@ -16,7 +17,6 @@ import "./index.css";
 2) StrictMode
  - it is a component imported from "react" module or file
  - it finds bugs on re-render and re-mounting of the component by mounting->unmounting->mounting app component.
- - if i am calling an api in app(), bug will be found in second mount
  - if i am setting a time interval in an effect and not releasing it, bug will be found in second mount.
  
 3) BrowserRouter

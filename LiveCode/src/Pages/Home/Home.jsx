@@ -8,6 +8,7 @@ import { MeetingPrompt } from "../../components/meetingPrompt/MeetingPrompt";
 import { useAuth } from "../../contexts/authContext";
 
 const Home = () => {
+  
   let role = "interviewer";
 
   const [showModel, setShowModel] = useState(null);
