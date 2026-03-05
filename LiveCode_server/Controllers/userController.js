@@ -25,6 +25,7 @@ const login = async (req, res) => {
   otpStore.set(email, otp);
 
   try {
+    console.log("emai;", email);
     await sendOtpEmail(email, otp);
   } catch (err) {
     console.log(err);
@@ -98,7 +99,7 @@ const verifyOtp = async (req, res) => {
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
-  
+
   return res.status(200).json({
     message: "login succesfull",
   });
