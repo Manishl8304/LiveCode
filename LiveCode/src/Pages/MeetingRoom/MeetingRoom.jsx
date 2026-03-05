@@ -80,8 +80,10 @@ export const MeetingRoom = () => {
      - sends offer to new user
     */
     const handleJoinedRoom = async ({ email }) => {
+      console.log(email, "joined this room");
       const stream = await getUserMediaStream();
       createNewConnection({ remoteEmail: email, stream, socket });
+      console.log("calling", email);
 
       const offer = await createOffer({ remoteEmail: email });
       socket.emit("call-user", { email, offer });
@@ -98,16 +100,18 @@ export const MeetingRoom = () => {
      - sends offer to new user
     */
     const handleIncomingCall = async ({ fromEmail, offer }) => {
+      console.log("incoming call from", fromEmail);
       const stream = await getUserMediaStream();
       createNewConnection({ remoteEmail: fromEmail, stream, socket });
 
       const answer = await createAnswer({ remoteEmail: fromEmail, offer });
 
+      console.log("call accepted of ", fromEmail);
       socket.emit("call-accepted", { fromEmail, answer });
     };
 
     const handleCallAccepted = async ({ fromEmail, answer }) => {
-
+      console.log(fromEmail, "accepted my call");
       await setAnswer({ fromEmail, answer });
     };
 
@@ -232,6 +236,7 @@ export const MeetingRoom = () => {
     };
   }, []);
 
+  console.log("remoteStreams", remoteStreams);
   return remoteStreams.length == 0 ? (
     <div className={styles.waitingRoomContainer}>
       <video
