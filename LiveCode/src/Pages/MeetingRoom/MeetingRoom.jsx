@@ -12,6 +12,26 @@ import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { MdVideocam, MdVideocamOff } from "react-icons/md";
 import { MdCallEnd } from "react-icons/md";
 
+const RemoteVideo = ({ stream }) => {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+
+  return (
+    <video
+      ref={videoRef}
+      className={styles.remoteVideo}
+      autoPlay
+      playsInline
+      muted
+    />
+  );
+};
+
 export const MeetingRoom = () => {
   const navigate = useNavigate();
 
@@ -328,17 +348,7 @@ export const MeetingRoom = () => {
 
           <div className={styles.remoteContainer}>
             {remoteStreams.map((peer) => (
-              <video
-                key={peer.id}
-                className={styles.remoteVideo}
-                ref={(video) => {
-                  if (video && video.srcObject !== peer.stream) {
-                    video.srcObject = peer.stream;
-                  }
-                }}
-                autoPlay
-                playsInline
-              />
+              <RemoteVideo key={peer.id} stream={peer.stream} />
             ))}
             {/* Kept your mock videos intact below */}
             <video
