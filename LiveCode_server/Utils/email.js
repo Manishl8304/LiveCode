@@ -22,18 +22,24 @@ import nodemailer from "nodemailer";
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
   port: 587,
+  secure: false,
   auth: {
-    user: process.env.BREVO_USER,
-    pass: process.env.BREVO_PASS,
+    user: process.env.brevo_user,
+    pass: process.env.brevo_pass,
   },
 });
 
 const sendOtpEmail = async (to, otp) => {
-  await transporter.sendMail({
-    from: "manishaggarwal8304@gmail.com",
-    to,
-    subject: "Your OTP",
-    text: `OTP for login is ${otp}`,
-  });
+  try {
+    await transporter.sendMail({
+      from: "manishaggarwal8304@gmail.com",
+      to,
+      subject: "Your OTP",
+      text: `OTP for login is ${otp}`,
+    });
+  } catch (err) {
+    console.log("Email error:", err);
+  }
 };
+
 export default sendOtpEmail;
