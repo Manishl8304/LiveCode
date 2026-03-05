@@ -27,6 +27,7 @@ const login = async (req, res) => {
   try {
     await sendOtpEmail(email, otp);
   } catch (err) {
+    console.log(err);
     return res.status(500).json({
       message: "Failed to send OTP",
     });
