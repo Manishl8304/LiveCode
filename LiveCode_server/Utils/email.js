@@ -13,7 +13,6 @@ import nodemailer from "nodemailer";
  - returns a transporter(Object) which is used to send email  
 */
 const transporter = nodemailer.createTransport({
-  service: "gmail",
   host: "smtp.gmail.com",
   port: 587,
   secure: false,
@@ -21,6 +20,14 @@ const transporter = nodemailer.createTransport({
     user: process.env.smtp_user,
     pass: process.env.smtp_pass,
   },
+});
+
+transporter.verify(function (error, success) {
+  if (error) {
+    console.log("SMTP Error:", error);
+  } else {
+    console.log("SMTP Server is ready to send emails");
+  }
 });
 
 /*
