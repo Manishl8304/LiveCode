@@ -1,5 +1,8 @@
 import nodemailer from "nodemailer";
+import dns from "dns"; // Import Node's built-in dns module
 
+// Force Node to use IPv4. This is a common fix for Render timeouts!
+dns.setDefaultResultOrder("ipv4first");
 /*
  - createTransport
  - it is function of nodemailer(object)
@@ -22,26 +25,25 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-transporter.verify(function (error, success) {
-  if (error) {
-    console.log("SMTP Error:", error);
-  } else {
-    console.log("SMTP Server is ready to send emails");
-  }
-});
-
 /*
- - sendMail
- - it a function of transporter(object)
- - takes an object as a parameter
- - object should contain keys
-  - from
-  - to
-  - subject
-  - text
-  
+- sendMail
+- it a function of transporter(object)
+- takes an object as a parameter
+- object should contain keys
+- from
+- to
+- subject
+- text
+
 */
 const sendOtpEmail = async (to, otp) => {
+  transporter.verify(function (error, success) {
+    if (error) {
+      console.log("SMTP Error:", error);
+    } else {
+      console.log("SMTP Server is ready to send emails");
+    }
+  });
   await transporter.sendMail({
     from: process.env.smtp_user,
     to,
