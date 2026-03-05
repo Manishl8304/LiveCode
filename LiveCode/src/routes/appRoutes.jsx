@@ -9,7 +9,7 @@ import { useAuth } from "../contexts/authContext";
 
 const AppRoutes = () => {
   const user = useAuth();
-
+  console.log("user", user);
   if (user.email != null) return <Navigate to="home" replace />;
   return (
     <Routes>
