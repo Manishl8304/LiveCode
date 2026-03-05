@@ -18,17 +18,16 @@ const RemoteVideo = ({ stream }) => {
   useEffect(() => {
     if (videoRef.current && stream) {
       videoRef.current.srcObject = stream;
+
+      // Explicitly play to handle browser autoplay policies
+      videoRef.current
+        .play()
+        .catch((err) => console.error("Autoplay blocked:", err));
     }
   }, [stream]);
 
   return (
-    <video
-      ref={videoRef}
-      className={styles.remoteVideo}
-      autoPlay
-      playsInline
-      muted
-    />
+    <video ref={videoRef} className={styles.remoteVideo} autoPlay playsInline />
   );
 };
 
@@ -268,7 +267,7 @@ export const MeetingRoom = () => {
         }}
         autoPlay
         playsInline
-        muted
+        // muted
       />
 
       <div className={styles.controls}>
@@ -312,7 +311,7 @@ export const MeetingRoom = () => {
               }}
               autoPlay
               playsInline
-              muted
+              // muted
             />
 
             <div className={styles.controls}>

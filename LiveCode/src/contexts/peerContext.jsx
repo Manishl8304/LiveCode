@@ -21,13 +21,14 @@ export const PeerProvider = (props) => {
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
         { urls: "stun:stun1.l.google.com:19302" },
+        // ADD A TURN SERVER HERE FOR PROD
+        // { urls: "turn:your-turn-server.com", username: "user", credential: "pwd" }
       ],
     });
 
-    stream.getTracks().forEach((track) => pc.addTrack(track, stream));
-
+    // 1. Set Listeners FIRST
     pc.onicecandidate = (event) => {
-      if (event.candidate && remoteEmail) {
+      if (event.candidate) {
         socket.emit("ice-candidate", {
           email: remoteEmail,
           candidate: event.candidate,
@@ -35,18 +36,23 @@ export const PeerProvider = (props) => {
       }
     };
 
-    // this function is fired when another side of connection adds their stream
     pc.ontrack = (event) => {
       const remoteStream = event.streams[0];
       setRemoteStreams((prev) => {
-        if (prev.find((item) => item.id === remoteEmail)) {
-          return prev;
-        }
+        if (prev.find((item) => item.id === remoteEmail)) return prev;
         return [...prev, { id: remoteEmail, stream: remoteStream }];
       });
     };
 
+    // 2. Add tracks SECOND
+    stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+
     peersRef.current.set(remoteEmail, pc);
+
+    // 3. Check if there were pending candidates for this specific email
+    if (candidateQueue.current.has(remoteEmail)) {
+      flushCandidates(remoteEmail);
+    }
   };
 
   /*
