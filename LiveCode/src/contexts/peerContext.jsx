@@ -13,9 +13,15 @@ export const PeerProvider = (props) => {
   const peersRef = useRef(new Map());
   const [remoteStreams, setRemoteStreams] = useState([]);
 
+  // queue to store ice candidates until remote description is set
+  const candidateQueue = useRef(new Map());
+
   const createNewConnection = ({ remoteEmail, stream, socket }) => {
     const pc = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+      ],
     });
 
     stream.getTracks().forEach((track) => pc.addTrack(track, stream));
@@ -69,23 +75,55 @@ export const PeerProvider = (props) => {
   */
   const createAnswer = async ({ remoteEmail, offer }) => {
     const pc = peersRef.current.get(remoteEmail);
+
     await pc.setRemoteDescription(offer);
+
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
+
+    // flush queued candidates
+    flushCandidates(remoteEmail);
+
     return answer;
   };
 
-
   const setAnswer = async ({ fromEmail, answer }) => {
     const pc = peersRef.current.get(fromEmail);
+
     await pc.setRemoteDescription(answer);
+
+    // flush queued candidates
+    flushCandidates(fromEmail);
   };
 
   const addIceCandidate = async ({ fromEmail, candidate }) => {
     const pc = peersRef.current.get(fromEmail);
-    if (pc) {
+
+    if (!pc) return;
+
+    // if remote description exists, add immediately
+    if (pc.remoteDescription && pc.remoteDescription.type) {
+      await pc.addIceCandidate(candidate);
+    } else {
+      // otherwise store candidate in queue
+      if (!candidateQueue.current.has(fromEmail)) {
+        candidateQueue.current.set(fromEmail, []);
+      }
+      candidateQueue.current.get(fromEmail).push(candidate);
+    }
+  };
+
+  const flushCandidates = async (email) => {
+    const pc = peersRef.current.get(email);
+    const queued = candidateQueue.current.get(email);
+
+    if (!pc || !queued) return;
+
+    for (const candidate of queued) {
       await pc.addIceCandidate(candidate);
     }
+
+    candidateQueue.current.delete(email);
   };
 
   const leaveMeeting = () => {
@@ -94,6 +132,7 @@ export const PeerProvider = (props) => {
     peersRef.current.clear();
     setRemoteStreams([]);
   };
+
   const leaveMeetingPeer = ({ email }) => {
     const pc = peersRef.current.get(email);
     if (!pc) return;
