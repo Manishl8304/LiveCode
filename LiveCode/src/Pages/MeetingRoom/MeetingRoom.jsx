@@ -12,25 +12,6 @@ import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { MdVideocam, MdVideocamOff } from "react-icons/md";
 import { MdCallEnd } from "react-icons/md";
 
-const RemoteVideo = ({ stream }) => {
-  const videoRef = useRef(null);
-
-  useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
-
-      // Explicitly play to handle browser autoplay policies
-      videoRef.current
-        .play()
-        .catch((err) => console.error("Autoplay blocked:", err));
-    }
-  }, [stream]);
-
-  return (
-    <video ref={videoRef} className={styles.remoteVideo} autoPlay playsInline />
-  );
-};
-
 export const MeetingRoom = () => {
   const navigate = useNavigate();
 
@@ -267,7 +248,7 @@ export const MeetingRoom = () => {
         }}
         autoPlay
         playsInline
-        // muted
+        muted
       />
 
       <div className={styles.controls}>
@@ -311,7 +292,7 @@ export const MeetingRoom = () => {
               }}
               autoPlay
               playsInline
-              // muted
+              muted
             />
 
             <div className={styles.controls}>
@@ -347,7 +328,17 @@ export const MeetingRoom = () => {
 
           <div className={styles.remoteContainer}>
             {remoteStreams.map((peer) => (
-              <RemoteVideo key={peer.id} stream={peer.stream} />
+              <video
+                key={peer.id}
+                className={styles.remoteVideo}
+                ref={(video) => {
+                  if (video && video.srcObject !== peer.stream) {
+                    video.srcObject = peer.stream;
+                  }
+                }}
+                autoPlay
+                playsInline
+              />
             ))}
             {/* Kept your mock videos intact below */}
             <video
