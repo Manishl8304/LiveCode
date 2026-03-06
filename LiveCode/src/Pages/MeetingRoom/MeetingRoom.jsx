@@ -12,6 +12,75 @@ import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { MdVideocam, MdVideocamOff } from "react-icons/md";
 import { MdCallEnd } from "react-icons/md";
 
+const RemoteVideo = ({ peer, className }) => {
+  const videoRef = useRef(null);
+  const [playError, setPlayError] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !peer.stream) return;
+
+    const playStream = async () => {
+      try {
+        if (video.srcObject !== peer.stream) {
+          video.srcObject = peer.stream;
+        }
+        await video.play();
+        setPlayError(false);
+      } catch (err) {
+        console.warn("Autoplay blocked:", err);
+        setPlayError(true);
+      }
+    };
+
+    playStream();
+  }, [peer.stream]);
+
+  return (
+    <div style={{ position: "relative", height: "100%", width: "100%" }}>
+      <video ref={videoRef} className={className} autoPlay playsInline />
+      {playError && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            zIndex: 10,
+          }}
+        >
+          <button
+            onClick={() => {
+              if (videoRef.current) {
+                videoRef.current
+                  .play()
+                  .then(() => setPlayError(false))
+                  .catch((e) => console.error(e));
+              }
+            }}
+            style={{
+              padding: "10px 20px",
+              cursor: "pointer",
+              backgroundColor: "#2563eb",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              fontWeight: "bold",
+            }}
+          >
+            Click to Play Stream
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const MeetingRoom = () => {
   const navigate = useNavigate();
 
@@ -328,20 +397,10 @@ export const MeetingRoom = () => {
 
           <div className={styles.remoteContainer}>
             {remoteStreams.map((peer) => (
-              <video
+              <RemoteVideo
                 key={peer.id}
+                peer={peer}
                 className={styles.remoteVideo}
-                ref={(video) => {
-                  if (!video) return;
-                  if (video.srcObject !== peer.stream) {
-                    video.srcObject = peer.stream;
-                    video
-                      .play()
-                      .catch((err) => console.warn("Autoplay blocked:", err));
-                  }
-                }}
-                autoPlay
-                playsInline
               />
             ))}
           </div>
