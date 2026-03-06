@@ -27,8 +27,8 @@ export const MeetingPrompt = (props) => {
     */
     const handleCreatedMeeting = ({ meetingId }) => {
       socket.emit("join-room", {
-        // email: currUserDetail.email,
-        email: "random4038@gmail.com",
+        email: currUserDetail.email,
+        // email: "random4038@gmail.com",
         meetingId: meetingId,
       });
       navigate(`${meetingId}`);
@@ -58,8 +58,8 @@ export const MeetingPrompt = (props) => {
     */
   const joinMeeting = () => {
     socket.emit("join-room", {
-      // email: currUserDetail.email,
-      email: "manishaggarwal8304@gmail.com",
+      email: currUserDetail.email,
+      // email: "manishaggarwal8304@gmail.com",
       meetingId: meetingLink,
     });
     navigate(`${meetingLink}`);

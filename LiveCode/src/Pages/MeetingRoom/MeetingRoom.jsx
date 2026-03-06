@@ -332,36 +332,18 @@ export const MeetingRoom = () => {
                 key={peer.id}
                 className={styles.remoteVideo}
                 ref={(video) => {
-                  if (video && video.srcObject !== peer.stream) {
+                  if (!video) return;
+                  if (video.srcObject !== peer.stream) {
                     video.srcObject = peer.stream;
+                    video
+                      .play()
+                      .catch((err) => console.warn("Autoplay blocked:", err));
                   }
                 }}
                 autoPlay
                 playsInline
               />
             ))}
-            {/* Kept your mock videos intact below */}
-            <video
-              className={styles.remoteVideo}
-              src="https://www.w3schools.com/html/mov_bbb.mp4"
-              autoPlay
-              playsInline
-              muted
-            />
-            <video
-              className={styles.remoteVideo}
-              src="https://www.w3schools.com/html/mov_bbb.mp4"
-              autoPlay
-              playsInline
-              muted
-            />
-            <video
-              className={styles.remoteVideo}
-              src="https://www.w3schools.com/html/mov_bbb.mp4"
-              autoPlay
-              playsInline
-              muted
-            />
           </div>
         </Panel>
 

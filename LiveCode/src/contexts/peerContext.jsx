@@ -6,19 +6,38 @@ import {
   useState,
   useRef,
 } from "react";
+import { FaRoadCircleExclamation } from "react-icons/fa6";
 
 const peerContext = createContext();
 
 export const PeerProvider = (props) => {
   const peersRef = useRef(new Map());
   const [remoteStreams, setRemoteStreams] = useState([]);
+  const pendingCandidates = useRef(new Map());
 
   const createNewConnection = ({ remoteEmail, stream, socket }) => {
     const pc = new RTCPeerConnection({
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
         { urls: "stun:stun1.l.google.com:19302" },
+        // ADD TURN SERVERS:
+        {
+          urls: "turn:openrelay.metered.ca:80",
+          username: "openrelayproject",
+          credential: "openrelayproject",
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443",
+          username: "openrelayproject",
+          credential: "openrelayproject",
+        },
+        {
+          urls: "turns:openrelay.metered.ca:443", // TURN over TLS
+          username: "openrelayproject",
+          credential: "openrelayproject",
+        },
       ],
+      iceCandidatePoolSize: 10, // pre-gather candidates for faster connection
     });
 
     stream.getTracks().forEach((track) => pc.addTrack(track, stream));
@@ -75,19 +94,38 @@ export const PeerProvider = (props) => {
     await pc.setRemoteDescription(offer);
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
+    const buffers = pendingCandidates.current.get(remoteEmail) || [];
+
+    for (const buffer of buffers) {
+      await pc.addIceCandidate(buffer);
+    }
+    pendingCandidates.current.delete(remoteEmail);
     return answer;
   };
 
   const setAnswer = async ({ fromEmail, answer }) => {
     const pc = peersRef.current.get(fromEmail);
     await pc.setRemoteDescription(answer);
+
+    const buffers = pendingCandidates.current.get(fromEmail) || [];
+
+    for (const buffer of buffers) {
+      await pc.addIceCandidate(buffer);
+    }
+    pendingCandidates.current.delete(fromEmail);
   };
 
   const addIceCandidate = async ({ fromEmail, candidate }) => {
     const pc = peersRef.current.get(fromEmail);
-    if (pc) {
-      await pc.addIceCandidate(candidate);
+    if (!pc) return;
+    if (!pc.remoteDescription) {
+      // Buffer it until remote description is set
+      const buffer = pendingCandidates.current.get(fromEmail) || [];
+      buffer.push(candidate);
+      pendingCandidates.current.set(fromEmail, buffer);
+      return;
     }
+    await pc.addIceCandidate(candidate);
   };
 
   const leaveMeeting = () => {
