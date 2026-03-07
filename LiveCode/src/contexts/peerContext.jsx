@@ -73,6 +73,10 @@ export const PeerProvider = (props) => {
       });
     };
 
+    pc.onconnectionstatechange = () => {
+      console.log("connection state:", pc.connectionState);
+    };
+
     peersRef.current.set(remoteEmail, pc);
   };
 

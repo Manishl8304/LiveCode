@@ -24,26 +24,29 @@ const RemoteVideo = ({ peer, className }) => {
     if (!video || !peer.stream) return;
 
     console.log("passed check");
-    const playStream = async () => {
-      try {
-        if (video.srcObject !== peer.stream) {
-          video.srcObject = peer.stream;
-        }
-        await video.play();
-        setPlayError(false);
-        console.log("remote stream has been set");
-      } catch (err) {
-        console.warn("Autoplay blocked:", err);
-        setPlayError(true);
-      }
-    };
+    // const playStream = async () => {
+    // try {
+    if (video.srcObject !== peer.stream) {
+      video.srcObject = peer.stream;
+    }
+    video.play().catch((err) => {
+      console.warn("Autoplay blocked:", err);
+      setPlayError(true);
+    });
+    // setPlayError(false);
+    console.log("remote stream has been set");
+    // } catch (err) {
+    // console.warn("Autoplay blocked:", err);
+    // setPlayError(true);
+    // }
+    // };
 
-    playStream();
-  }, [peer, videoRef]);
+    // playStream();
+  }, [peer.stream]);
 
   return (
     <div style={{ position: "relative", height: "100%", width: "100%" }}>
-      <video ref={videoRef} className={className} autoPlay playsInline />
+      <video ref={videoRef} className={className} autoPlay playsInline muted />
       {playError && (
         <div
           style={{
