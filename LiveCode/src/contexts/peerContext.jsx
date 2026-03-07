@@ -15,34 +15,31 @@ export const PeerProvider = (props) => {
   const [remoteStreams, setRemoteStreams] = useState([]);
   const pendingCandidates = useRef(new Map());
 
-  const createNewConnection = ({ remoteEmail, stream, socket }) => {
+  const createNewConnection = async ({ remoteEmail, stream, socket }) => {
+    // OLD: hardcoded TURN credentials that expired in production
+    // const pc = new RTCPeerConnection({
+    //   iceServers: [
+    //     { urls: "turn:global.relay.metered.ca:80", username: "e34e4de5032c2e38e5603e75", credential: "yAJwBe6JN5cnmuOF" },
+    //     ... more expired entries ...
+    //   ],
+    // });
+
+    // NEW: Fetch fresh TURN credentials from backend (secret key stays on server)
+    let iceServers = [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+    ];
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/turn-credentials`);
+      iceServers = await res.json();
+      console.log("Fetched fresh ICE servers:", iceServers);
+    } catch (err) {
+      console.warn("Failed to fetch TURN credentials, using STUN fallback:", err);
+    }
+
     const pc = new RTCPeerConnection({
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        { urls: "stun:stun1.l.google.com:19302" },
-        { urls: "stun:stun.relay.metered.ca:80" },
-        {
-          urls: "turn:global.relay.metered.ca:80",
-          username: "e34e4de5032c2e38e5603e75",
-          credential: "yAJwBe6JN5cnmuOF",
-        },
-        {
-          urls: "turn:global.relay.metered.ca:80?transport=tcp",
-          username: "e34e4de5032c2e38e5603e75",
-          credential: "yAJwBe6JN5cnmuOF",
-        },
-        {
-          urls: "turn:global.relay.metered.ca:443",
-          username: "e34e4de5032c2e38e5603e75",
-          credential: "yAJwBe6JN5cnmuOF",
-        },
-        {
-          urls: "turns:global.relay.metered.ca:443?transport=tcp",
-          username: "e34e4de5032c2e38e5603e75",
-          credential: "yAJwBe6JN5cnmuOF",
-        },
-      ],
-      iceCandidatePoolSize: 10, // pre-gather candidates for faster connection
+      iceServers,
+      iceCandidatePoolSize: 10,
     });
 
     stream.getTracks().forEach((track) => pc.addTrack(track, stream));

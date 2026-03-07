@@ -39,6 +39,24 @@ app.use(express.json()); //removes undefined behavior of req.body
 app.use(cookieParser()); // mandatory for cookies to travel
 app.use("/auth", userRoutes);
 
+// Endpoint to fetch fresh TURN credentials from Metered API
+// Secret key stays safe on server, never exposed to frontend
+app.get("/turn-credentials", async (req, res) => {
+  try {
+    const response = await fetch(
+      `https://${process.env.METERED_APP_NAME}.metered.live/api/v1/turn/credentials?apiKey=${process.env.METERED_SECRET_KEY}`
+    );
+    const iceServers = await response.json();
+    res.json(iceServers);
+  } catch (error) {
+    console.error("Failed to fetch TURN credentials:", error);
+    res.json([
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+    ]);
+  }
+});
+
 server.listen(8000, () => {
   console.log("Server is listening at port 8000");
 });

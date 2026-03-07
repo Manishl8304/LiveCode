@@ -188,7 +188,7 @@ export const MeetingRoom = () => {
     const handleJoinedRoom = async ({ email }) => {
       console.log(email, "joined this room");
       const stream = await getUserMediaStream();
-      createNewConnection({ remoteEmail: email, stream, socket });
+      await createNewConnection({ remoteEmail: email, stream, socket });
       console.log("calling", email);
 
       const offer = await createOffer({ remoteEmail: email });
@@ -208,7 +208,7 @@ export const MeetingRoom = () => {
     const handleIncomingCall = async ({ fromEmail, offer }) => {
       console.log("incoming call from", fromEmail);
       const stream = await getUserMediaStream();
-      createNewConnection({ remoteEmail: fromEmail, stream, socket });
+      await createNewConnection({ remoteEmail: fromEmail, stream, socket });
 
       const answer = await createAnswer({ remoteEmail: fromEmail, offer });
 
