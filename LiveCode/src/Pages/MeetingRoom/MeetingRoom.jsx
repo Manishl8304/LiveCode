@@ -27,6 +27,7 @@ const RemoteVideo = ({ peer, className }) => {
         }
         await video.play();
         setPlayError(false);
+        console.log("remote stream has been set")
       } catch (err) {
         console.warn("Autoplay blocked:", err);
         setPlayError(true);

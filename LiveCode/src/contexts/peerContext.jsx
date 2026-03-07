@@ -20,21 +20,26 @@ export const PeerProvider = (props) => {
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
         { urls: "stun:stun1.l.google.com:19302" },
-        // ADD TURN SERVERS:
+        { urls: "stun:stun.relay.metered.ca:80" },
         {
-          urls: "turn:openrelay.metered.ca:80",
-          username: "openrelayproject",
-          credential: "openrelayproject",
+          urls: "turn:global.relay.metered.ca:80",
+          username: "e34e4de5032c2e38e5603e75",
+          credential: "yAJwBe6JN5cnmuOF",
         },
         {
-          urls: "turn:openrelay.metered.ca:443",
-          username: "openrelayproject",
-          credential: "openrelayproject",
+          urls: "turn:global.relay.metered.ca:80?transport=tcp",
+          username: "e34e4de5032c2e38e5603e75",
+          credential: "yAJwBe6JN5cnmuOF",
         },
         {
-          urls: "turns:openrelay.metered.ca:443", // TURN over TLS
-          username: "openrelayproject",
-          credential: "openrelayproject",
+          urls: "turn:global.relay.metered.ca:443",
+          username: "e34e4de5032c2e38e5603e75",
+          credential: "yAJwBe6JN5cnmuOF",
+        },
+        {
+          urls: "turns:global.relay.metered.ca:443?transport=tcp",
+          username: "e34e4de5032c2e38e5603e75",
+          credential: "yAJwBe6JN5cnmuOF",
         },
       ],
       iceCandidatePoolSize: 10, // pre-gather candidates for faster connection
