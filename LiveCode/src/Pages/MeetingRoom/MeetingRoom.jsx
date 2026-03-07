@@ -27,7 +27,7 @@ const RemoteVideo = ({ peer, className }) => {
         }
         await video.play();
         setPlayError(false);
-        console.log("remote stream has been set")
+        console.log("remote stream has been set");
       } catch (err) {
         console.warn("Autoplay blocked:", err);
         setPlayError(true);
@@ -35,7 +35,7 @@ const RemoteVideo = ({ peer, className }) => {
     };
 
     playStream();
-  }, [peer.stream]);
+  }, [peer]);
 
   return (
     <div style={{ position: "relative", height: "100%", width: "100%" }}>

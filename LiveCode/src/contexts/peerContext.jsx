@@ -58,12 +58,18 @@ export const PeerProvider = (props) => {
 
     // this function is fired when another side of connection adds their stream
     pc.ontrack = (event) => {
-      const remoteStream = event.streams[0];
       setRemoteStreams((prev) => {
-        if (prev.find((item) => item.id === remoteEmail)) {
-          return prev;
+        const existing = prev.find((p) => p.id === remoteEmail);
+
+        if (existing) {
+          existing.stream.addTrack(event.track);
+          return [...prev];
         }
-        return [...prev, { id: remoteEmail, stream: remoteStream }];
+
+        const newStream = new MediaStream();
+        newStream.addTrack(event.track);
+
+        return [...prev, { id: remoteEmail, stream: newStream }];
       });
     };
 
