@@ -13,6 +13,7 @@ import { MdVideocam, MdVideocamOff } from "react-icons/md";
 import { MdCallEnd } from "react-icons/md";
 
 const RemoteVideo = ({ peer, className }) => {
+  console.log("in remote video", peer);
   const videoRef = useRef(null);
   const [playError, setPlayError] = useState(false);
 
