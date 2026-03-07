@@ -19,6 +19,8 @@ const RemoteVideo = ({ peer, className }) => {
 
   useEffect(() => {
     const video = videoRef.current;
+    console.log("current box", video);
+    console.log("peer stream", peer.stream);
     if (!video || !peer.stream) return;
 
     const playStream = async () => {
@@ -36,7 +38,7 @@ const RemoteVideo = ({ peer, className }) => {
     };
 
     playStream();
-  }, [peer]);
+  }, [peer, videoRef]);
 
   return (
     <div style={{ position: "relative", height: "100%", width: "100%" }}>
