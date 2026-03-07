@@ -62,8 +62,20 @@ export const PeerProvider = (props) => {
         const existing = prev.find((p) => p.id === remoteEmail);
 
         if (existing) {
-          existing.stream.addTrack(event.track);
-          return [...prev];
+          // FIX: Old code mutated stream in-place — React couldn't detect the change
+          // since the object reference stayed the same, causing inconsistent re-renders
+          // existing.stream.addTrack(event.track);
+          // return [...prev];
+
+          // NEW: Create a new MediaStream with all existing + new tracks
+          // This gives React a new object reference so it properly re-renders
+          const newStream = new MediaStream([
+            ...existing.stream.getTracks(),
+            event.track,
+          ]);
+          return prev.map((p) =>
+            p.id === remoteEmail ? { ...p, stream: newStream } : p
+          );
         }
 
         const newStream = new MediaStream();

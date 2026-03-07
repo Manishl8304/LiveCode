@@ -17,6 +17,15 @@ const RemoteVideo = ({ peer, className }) => {
   const videoRef = useRef(null);
   const [playError, setPlayError] = useState(false);
 
+  // FIX: Track whether this component is still mounted
+  // Prevents setState on unmounted component when play() resolves after unmount
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   useEffect(() => {
     const video = videoRef.current;
     console.log("current box", video);
@@ -24,24 +33,44 @@ const RemoteVideo = ({ peer, className }) => {
     if (!video || !peer.stream) return;
 
     console.log("passed check");
-    // const playStream = async () => {
-    // try {
-    if (video.srcObject !== peer.stream) {
-      video.srcObject = peer.stream;
-    }
-    video.play().catch((err) => {
-      console.warn("Autoplay blocked:", err);
-      setPlayError(true);
-    });
-    // setPlayError(false);
-    console.log("remote stream has been set");
-    // } catch (err) {
-    // console.warn("Autoplay blocked:", err);
-    // setPlayError(true);
-    // }
-    // };
 
+    // FIX: Old code used a nested async wrapper and didn't guard against unmount
+    // const playStream = async () => {
+    //   try {
+    //     if (video.srcObject !== peer.stream) {
+    //       video.srcObject = peer.stream;
+    //     }
+    //     video.play().catch((err) => {
+    //       console.warn("Autoplay blocked:", err);
+    //       setPlayError(true);
+    //     });
+    //     setPlayError(false);
+    //     console.log("remote stream has been set");
+    //   } catch (err) {
+    //     console.warn("Autoplay blocked:", err);
+    //     setPlayError(true);
+    //   }
+    // };
     // playStream();
+
+    // NEW: Directly assign srcObject and properly await play() with mount guard
+    video.srcObject = peer.stream;
+    console.log("remote stream has been set");
+
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          if (mountedRef.current) setPlayError(false);
+        })
+        .catch((err) => {
+          // Only set error state if component is still mounted
+          if (mountedRef.current) {
+            console.warn("Autoplay blocked:", err);
+            setPlayError(true);
+          }
+        });
+    }
   }, [peer.stream]);
 
   return (
@@ -314,117 +343,143 @@ export const MeetingRoom = () => {
   }, []);
 
   console.log("remoteStreams", remoteStreams);
-  return remoteStreams.length == 0 ? (
-    <div className={styles.waitingRoomContainer}>
-      <video
-        className={styles.waitingVideo}
-        ref={(video) => {
-          if (video && video.srcObject !== myStream) {
-            video.srcObject = myStream;
-          }
-        }}
-        autoPlay
-        playsInline
-        muted
-      />
 
-      <div className={styles.controls}>
-        <span
-          className={`${micOn ? "" : styles.redBack} ${styles.inputControlBtn}`}
-          onClick={toggleMic}
-        >
-          {micOn ? (
-            <FaMicrophone className={styles.controlButton} />
-          ) : (
-            <FaMicrophoneSlash className={styles.controlButton} />
-          )}
-        </span>
-        <span
-          className={`${camOn ? "" : styles.redBack} ${styles.inputControlBtn}`}
-          onClick={toggleCamera}
-        >
-          {camOn ? (
-            <MdVideocam className={styles.controlButton} />
-          ) : (
-            <MdVideocamOff className={styles.controlButton} />
-          )}
-        </span>
+  // FIX: Old code used a ternary to conditionally render entirely different component trees.
+  // When remoteStreams went from [] to [{...}], React UNMOUNTED the waiting room and MOUNTED
+  // the meeting room — this removed the video element from the DOM mid-play(), causing:
+  // "AbortError: The play() request was interrupted because the media was removed from the document"
+  //
+  // return remoteStreams.length == 0 ? (
+  //   <div className={styles.waitingRoomContainer}>...waiting room...</div>
+  // ) : (
+  //   <div className={styles.meetingWrapper}>...meeting room...</div>
+  // );
 
-        <span className={styles.inputControlBtn} onClick={handleLeaveMeeting}>
-          <MdCallEnd />
-        </span>
+  // NEW: Render BOTH trees always, use CSS display:none to hide the inactive one.
+  // This keeps video elements in the DOM so play() is never interrupted.
+  const inMeeting = remoteStreams.length > 0;
+
+  return (
+    <>
+      {/* Waiting Room — hidden when in meeting */}
+      <div
+        className={styles.waitingRoomContainer}
+        style={{ display: inMeeting ? "none" : undefined }}
+      >
+        <video
+          className={styles.waitingVideo}
+          ref={(video) => {
+            if (video && video.srcObject !== myStream) {
+              video.srcObject = myStream;
+            }
+          }}
+          autoPlay
+          playsInline
+          muted
+        />
+
+        <div className={styles.controls}>
+          <span
+            className={`${micOn ? "" : styles.redBack} ${styles.inputControlBtn}`}
+            onClick={toggleMic}
+          >
+            {micOn ? (
+              <FaMicrophone className={styles.controlButton} />
+            ) : (
+              <FaMicrophoneSlash className={styles.controlButton} />
+            )}
+          </span>
+          <span
+            className={`${camOn ? "" : styles.redBack} ${styles.inputControlBtn}`}
+            onClick={toggleCamera}
+          >
+            {camOn ? (
+              <MdVideocam className={styles.controlButton} />
+            ) : (
+              <MdVideocamOff className={styles.controlButton} />
+            )}
+          </span>
+
+          <span className={styles.inputControlBtn} onClick={handleLeaveMeeting}>
+            <MdCallEnd />
+          </span>
+        </div>
       </div>
-    </div>
-  ) : (
-    <div className={styles.meetingWrapper}>
-      <PanelGroup direction="horizontal" className={styles.panelGroup}>
-        <Panel defaultSize={30} minSize={20} className={styles.videoPanel}>
-          <div className={styles.activeLocalContainer}>
-            <video
-              className={styles.localVideo}
-              ref={(video) => {
-                if (video && video.srcObject !== myStream) {
-                  video.srcObject = myStream;
-                }
-              }}
-              autoPlay
-              playsInline
-              muted
-            />
 
-            <div className={styles.controls}>
-              <span
-                className={`${micOn ? "" : styles.redBack} ${styles.inputControlBtn}`}
-                onClick={toggleMic}
-              >
-                {micOn ? (
-                  <FaMicrophone className={styles.controlButton} />
-                ) : (
-                  <FaMicrophoneSlash className={styles.controlButton} />
-                )}
-              </span>
-              <span
-                className={`${camOn ? "" : styles.redBack} ${styles.inputControlBtn}`}
-                onClick={toggleCamera}
-              >
-                {camOn ? (
-                  <MdVideocam className={styles.controlButton} />
-                ) : (
-                  <MdVideocamOff className={styles.controlButton} />
-                )}
-              </span>
-
-              <span
-                className={styles.inputControlBtn}
-                onClick={handleLeaveMeeting}
-              >
-                <MdCallEnd />
-              </span>
-            </div>
-          </div>
-
-          <div className={styles.remoteContainer}>
-            {remoteStreams.map((peer) => (
-              <RemoteVideo
-                key={peer.id}
-                peer={peer}
-                className={styles.remoteVideo}
+      {/* Meeting Room — hidden until remote streams arrive */}
+      <div
+        className={styles.meetingWrapper}
+        style={{ display: inMeeting ? undefined : "none" }}
+      >
+        <PanelGroup direction="horizontal" className={styles.panelGroup}>
+          <Panel defaultSize={30} minSize={20} className={styles.videoPanel}>
+            <div className={styles.activeLocalContainer}>
+              <video
+                className={styles.localVideo}
+                ref={(video) => {
+                  if (video && video.srcObject !== myStream) {
+                    video.srcObject = myStream;
+                  }
+                }}
+                autoPlay
+                playsInline
+                muted
               />
-            ))}
-          </div>
-        </Panel>
 
-        <PanelResizeHandle className={styles.resizeHandle} />
+              <div className={styles.controls}>
+                <span
+                  className={`${micOn ? "" : styles.redBack} ${styles.inputControlBtn}`}
+                  onClick={toggleMic}
+                >
+                  {micOn ? (
+                    <FaMicrophone className={styles.controlButton} />
+                  ) : (
+                    <FaMicrophoneSlash className={styles.controlButton} />
+                  )}
+                </span>
+                <span
+                  className={`${camOn ? "" : styles.redBack} ${styles.inputControlBtn}`}
+                  onClick={toggleCamera}
+                >
+                  {camOn ? (
+                    <MdVideocam className={styles.controlButton} />
+                  ) : (
+                    <MdVideocamOff className={styles.controlButton} />
+                  )}
+                </span>
 
-        <Panel className={styles.editorPanel}>
-          <Editor
-            height="100%"
-            language="javascript"
-            value={code}
-            onChange={(value) => handleCodeChange(value)}
-          />
-        </Panel>
-      </PanelGroup>
-    </div>
+                <span
+                  className={styles.inputControlBtn}
+                  onClick={handleLeaveMeeting}
+                >
+                  <MdCallEnd />
+                </span>
+              </div>
+            </div>
+
+            <div className={styles.remoteContainer}>
+              {remoteStreams.map((peer) => (
+                <RemoteVideo
+                  key={peer.id}
+                  peer={peer}
+                  className={styles.remoteVideo}
+                />
+              ))}
+            </div>
+          </Panel>
+
+          <PanelResizeHandle className={styles.resizeHandle} />
+
+          <Panel className={styles.editorPanel}>
+            <Editor
+              height="100%"
+              language="javascript"
+              value={code}
+              onChange={(value) => handleCodeChange(value)}
+            />
+          </Panel>
+        </PanelGroup>
+      </div>
+    </>
   );
 };
