@@ -44,7 +44,7 @@ app.use("/auth", userRoutes);
 app.get("/turn-credentials", async (req, res) => {
   try {
     const response = await fetch(
-      `https://${process.env.METERED_APP_NAME}.metered.live/api/v1/turn/credentials?apiKey=${process.env.METERED_SECRET_KEY}`
+      `https://${process.env.METERED_APP_NAME}.metered.live/api/v1/turn/credentials?apiKey=${process.env.METERED_API_KEY}`
     );
     const iceServers = await response.json();
     res.json(iceServers);
