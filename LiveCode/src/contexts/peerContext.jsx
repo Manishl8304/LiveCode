@@ -141,9 +141,10 @@ export const PeerProvider = (props) => {
 
   const addIceCandidate = async ({ fromEmail, candidate }) => {
     const pc = peersRef.current.get(fromEmail);
-    if (!pc) return;
-    if (!pc.remoteDescription) {
-      // Buffer it until remote description is set
+    // FIX: If PC doesn't exist yet (because createNewConnection is awaiting TURN creds),
+    // we MUST buffer the candidates instead of dropping them
+    if (!pc || !pc.remoteDescription) {
+      // Buffer it until PC is created AND remote description is set
       const buffer = pendingCandidates.current.get(fromEmail) || [];
       buffer.push(candidate);
       pendingCandidates.current.set(fromEmail, buffer);
