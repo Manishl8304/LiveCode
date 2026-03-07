@@ -23,6 +23,7 @@ const RemoteVideo = ({ peer, className }) => {
     console.log("peer stream", peer.stream);
     if (!video || !peer.stream) return;
 
+    console.log("passed check");
     const playStream = async () => {
       try {
         if (video.srcObject !== peer.stream) {
