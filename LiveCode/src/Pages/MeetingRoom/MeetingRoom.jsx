@@ -17,15 +17,6 @@ const RemoteVideo = ({ peer, className }) => {
   const videoRef = useRef(null);
   const [playError, setPlayError] = useState(false);
 
-  // FIX: Track whether this component is still mounted
-  // Prevents setState on unmounted component when play() resolves after unmount
-  const mountedRef = useRef(true);
-  useEffect(() => {
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
   useEffect(() => {
     const video = videoRef.current;
     console.log("current box", video);
@@ -34,43 +25,22 @@ const RemoteVideo = ({ peer, className }) => {
 
     console.log("passed check");
 
-    // FIX: Old code used a nested async wrapper and didn't guard against unmount
-    // const playStream = async () => {
-    //   try {
-    //     if (video.srcObject !== peer.stream) {
-    //       video.srcObject = peer.stream;
-    //     }
-    //     video.play().catch((err) => {
-    //       console.warn("Autoplay blocked:", err);
-    //       setPlayError(true);
-    //     });
-    //     setPlayError(false);
-    //     console.log("remote stream has been set");
-    //   } catch (err) {
-    //     console.warn("Autoplay blocked:", err);
-    //     setPlayError(true);
-    //   }
-    // };
-    // playStream();
-
-    // NEW: Directly assign srcObject and properly await play() with mount guard
-    video.srcObject = peer.stream;
-    console.log("remote stream has been set");
-
-    const playPromise = video.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          if (mountedRef.current) setPlayError(false);
-        })
-        .catch((err) => {
-          // Only set error state if component is still mounted
-          if (mountedRef.current) {
-            console.warn("Autoplay blocked:", err);
-            setPlayError(true);
-          }
+    const playStream = async () => {
+      try {
+        if (video.srcObject !== peer.stream) {
+          video.srcObject = peer.stream;
+        }
+        video.play().catch((err) => {
+          console.warn("Autoplay blocked:", err);
+          setPlayError(true);
         });
-    }
+        setPlayError(false);
+      } catch (err) {
+        console.warn("Autoplay blocked:", err);
+        setPlayError(true);
+      }
+    };
+    playStream();
   }, [peer.stream]);
 
   return (

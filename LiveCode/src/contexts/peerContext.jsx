@@ -16,15 +16,7 @@ export const PeerProvider = (props) => {
   const pendingCandidates = useRef(new Map());
 
   const createNewConnection = async ({ remoteEmail, stream, socket }) => {
-    // OLD: hardcoded TURN credentials that expired in production
-    // const pc = new RTCPeerConnection({
-    //   iceServers: [
-    //     { urls: "turn:global.relay.metered.ca:80", username: "e34e4de5032c2e38e5603e75", credential: "yAJwBe6JN5cnmuOF" },
-    //     ... more expired entries ...
-    //   ],
-    // });
 
-    // NEW: Fetch fresh TURN credentials from backend (secret key stays on server)
     let iceServers = [
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
@@ -143,6 +135,7 @@ export const PeerProvider = (props) => {
     const pc = peersRef.current.get(fromEmail);
     // FIX: If PC doesn't exist yet (because createNewConnection is awaiting TURN creds),
     // we MUST buffer the candidates instead of dropping them
+    
     if (!pc || !pc.remoteDescription) {
       // Buffer it until PC is created AND remote description is set
       const buffer = pendingCandidates.current.get(fromEmail) || [];
@@ -159,6 +152,7 @@ export const PeerProvider = (props) => {
     peersRef.current.clear();
     setRemoteStreams([]);
   };
+  
   const leaveMeetingPeer = ({ email }) => {
     const pc = peersRef.current.get(email);
     if (!pc) return;
