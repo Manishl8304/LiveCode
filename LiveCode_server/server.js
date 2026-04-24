@@ -18,6 +18,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 const server = http.createServer(app);
+
 /*
 mongoose is an object imported from mongoose library
 async mongoose.connect(connection_string) - for connecting to a database
@@ -27,6 +28,7 @@ const connectDb = async () => {
   console.log("Database connected");
 };
 await connectDb();
+
 
 app.use(
   cors({
@@ -71,15 +73,18 @@ const io = new Server(server, {
   },
 });
 
+
 const emailToSocketMapping = new Map();
 const socketToEmailMapping = new Map();
+
 
 io.on("connection", (socket) => {
   console.log(`user connect with socked id ${socket.id}`);
 
   /*
+  Brief: a function to create a meeting on server side
   Input: None
-  Output: emits meeting Id
+  Output: {meetingId: id of the meeting}
   Description: creates a randomString using randomUUID function
   */
   socket.on("create-meeting", () => {
@@ -88,7 +93,8 @@ io.on("connection", (socket) => {
   });
 
   /*
-  Input: email( user who wants to join the meeting), meetingId(meeting Room which email want to join)
+  Brief: a function to handle join meeting on server side
+  Input: {email: user who wants to join the meeting, meetingId: meeting Room which email wants to join}
   Output: emits new joined email to all person in meeting
   Description: 
     - uses socket.join() to join

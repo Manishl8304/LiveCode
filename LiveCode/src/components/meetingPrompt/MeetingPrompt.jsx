@@ -41,7 +41,7 @@ export const MeetingPrompt = (props) => {
   }, []);
 
   /*
-    Brief: a function to create meeting
+    Brief: a function to create meeting on client side
     Input: None
     OutPut: None
     Description: user A requests to create a meeting -> server creates a meeting Id -> sends "created-meeting" message
@@ -51,11 +51,12 @@ export const MeetingPrompt = (props) => {
   };
 
   /*
-    Brief: a function to join meeting
+  Brief: a function to join meeting on client side
     Input: None
     OutPut: None
     Description: user B requests to join a meeting -> server adds user B to room-> user B navigate to meetingRoom Page
-    */
+  
+  */
   const joinMeeting = () => {
     socket.emit("join-room", {
       email: currUserDetail.email,

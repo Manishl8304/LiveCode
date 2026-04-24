@@ -16,11 +16,11 @@ const AppRoutes = () => {
       <Route element={<PublicLayout />}>
         <Route path="" element={<LandingPage />}></Route>
       </Route>
-      <Route element={<ProtectedLayout />}>
-      <Route element={<MainLayout />}>
-        <Route path="/home" element={<Home />}></Route>
-        <Route path="/home/:meetingId" element={<MeetingRoom />}></Route>
-        </Route>
+      {/* <Route element={<ProtectedLayout />}> */}
+        <Route element={<MainLayout />}>
+          <Route path="/home" element={<Home />}></Route>
+          <Route path="/home/:meetingId" element={<MeetingRoom />}></Route>
+        {/* </Route> */}
       </Route>
     </Routes>
   );

@@ -11,6 +11,9 @@ import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { MdVideocam, MdVideocamOff } from "react-icons/md";
 import { MdCallEnd } from "react-icons/md";
+import * as Y from 'yjs';
+import { WebrtcProvider } from 'y-webrtc';
+import { MonacoBinding } from 'y-monaco';
 
 const RemoteVideo = ({ peer, className }) => {
   console.log("in remote video", peer);
@@ -45,7 +48,7 @@ const RemoteVideo = ({ peer, className }) => {
 
   return (
     <div style={{ position: "relative", height: "100%", width: "100%" }}>
-      <video ref={videoRef} className={className} autoPlay playsInline muted />
+      <video ref={videoRef} className={className} autoPlay playsInline />
       {playError && (
         <div
           style={{
@@ -93,9 +96,9 @@ export const MeetingRoom = () => {
 
   const socket = useSocket();
   const user = useAuth();
-
-  const [code, setCode] = useState("// Start coding...");
-  const isRemoteChange = useRef(false);
+  const ydocRef = useRef(null);
+  const providerRef = useRef(null);
+  const bindingRef = useRef(null);
 
   // mystreams
   const [myStream, setMyStream] = useState(null);
@@ -114,8 +117,6 @@ export const MeetingRoom = () => {
   } = usePeer();
 
   const params = useParams();
-  const myVideoRef = useRef(null);
-  const remoteVideoRef = useRef(null);
 
   // to fetch media on first mountung of meeting page, as meeting waiting room consists of media
   useEffect(() => {
@@ -124,13 +125,6 @@ export const MeetingRoom = () => {
     };
     init();
   }, []);
-
-  // set mystream state to myvideo ref
-  useEffect(() => {
-    if (myVideoRef.current && myStream) {
-      myVideoRef.current.srcObject = myStream;
-    }
-  }, [myStream, myVideoRef]);
 
   /*
   - previous stream cleanup if stream changes
@@ -204,10 +198,6 @@ export const MeetingRoom = () => {
     socket.on("call-accepted", handleCallAccepted);
     socket.on("ice-candidate", handleIceCandidate);
     socket.on("user-left", handleUserLeft);
-    socket.on("code-change", ({ code }) => {
-      isRemoteChange.current = true;
-      setCode(code);
-    });
 
     return () => {
       socket.off("joined-room", handleJoinedRoom);
@@ -215,7 +205,6 @@ export const MeetingRoom = () => {
       socket.off("call-accepted", handleCallAccepted);
       socket.off("ice-candidate", handleIceCandidate);
       socket.off("user-left", handleUserLeft);
-      socket.off("code-change");
     };
   }, []);
 
@@ -242,18 +231,6 @@ export const MeetingRoom = () => {
     setCamOn(stream.getVideoTracks()[0].enabled);
     return stream;
   }, [myStream]);
-
-  const handleCodeChange = (value) => {
-    if (isRemoteChange.current) {
-      isRemoteChange.current = false;
-      return;
-    }
-    setCode(value);
-    socket.emit("code-change", {
-      meetingId: params.meetingId,
-      code: value,
-    });
-  };
 
   /*
   INPUT: None
@@ -301,7 +278,7 @@ export const MeetingRoom = () => {
 
   useEffect(() => {
     const handleTabClose = () => {
-      socket.emit("leave-meeting", { meetingId: params.meetingId });
+      // socket.emit("leave-meeting", { meetingId: params.meetingId });
       handleLeaveMeeting();
     };
 
@@ -328,6 +305,26 @@ export const MeetingRoom = () => {
   // NEW: Render BOTH trees always, use CSS display:none to hide the inactive one.
   // This keeps video elements in the DOM so play() is never interrupted.
   const inMeeting = remoteStreams.length > 0;
+
+  useEffect(() => {
+    const ydoc = new Y.Doc();
+
+    const provider = new WebrtcProvider(
+      params.meetingId, // room name = your meetingId ✅
+      ydoc, // the shared doc
+    );
+
+    ydocRef.current = ydoc;
+    providerRef.current = provider;
+
+    return () => {
+      if (bindingRef.current) {
+        bindingRef.current.destroy();
+      }
+      provider.destroy();
+      ydoc.destroy();
+    };
+  }, [params.meetingId]);
 
   return (
     <>
@@ -444,8 +441,16 @@ export const MeetingRoom = () => {
             <Editor
               height="100%"
               language="javascript"
-              value={code}
-              onChange={(value) => handleCodeChange(value)}
+              onMount={(editor) => {
+                if (ydocRef.current && providerRef.current) {
+                  bindingRef.current = new MonacoBinding(
+                    ydocRef.current.getText("monaco"), // shared text
+                    editor.getModel(), // monaco model
+                    new Set([editor]), // editor instance
+                    providerRef.current.awareness, // cursor sharing
+                  );
+                }
+              }}
             />
           </Panel>
         </PanelGroup>
