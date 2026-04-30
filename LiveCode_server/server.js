@@ -144,6 +144,14 @@ io.on("connection", (socket) => {
     socket.to(meetingId).emit("code-change", { code });
   });
 
+  socket.on("yjs-update", ({ meetingId, update }) => {
+    socket.to(meetingId).emit("yjs-update", { update });
+  });
+
+  socket.on("request-yjs-state", ({ meetingId }) => {
+    socket.to(meetingId).emit("provide-yjs-state");
+  });
+
   socket.on("leave-meeting", async ({ meetingId }) => {
     socket.leave(meetingId);
     const email = socketToEmailMapping.get(socket.id);

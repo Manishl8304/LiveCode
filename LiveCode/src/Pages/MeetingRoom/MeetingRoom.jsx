@@ -12,7 +12,6 @@ import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { MdVideocam, MdVideocamOff } from "react-icons/md";
 import { MdCallEnd } from "react-icons/md";
 import * as Y from 'yjs';
-import { WebrtcProvider } from 'y-webrtc';
 import { MonacoBinding } from 'y-monaco';
 
 const RemoteVideo = ({ peer, className }) => {
@@ -22,11 +21,7 @@ const RemoteVideo = ({ peer, className }) => {
 
   useEffect(() => {
     const video = videoRef.current;
-    console.log("current box", video);
-    console.log("peer stream", peer.stream);
     if (!video || !peer.stream) return;
-
-    console.log("passed check");
 
     const playStream = async () => {
       try {
@@ -44,7 +39,7 @@ const RemoteVideo = ({ peer, className }) => {
       }
     };
     playStream();
-  }, [peer.stream]);
+  }, [peer]);
 
   return (
     <div style={{ position: "relative", height: "100%", width: "100%" }}>
@@ -97,7 +92,6 @@ export const MeetingRoom = () => {
   const socket = useSocket();
   const user = useAuth();
   const ydocRef = useRef(null);
-  const providerRef = useRef(null);
   const bindingRef = useRef(null);
 
   // mystreams
@@ -224,6 +218,7 @@ export const MeetingRoom = () => {
     if (myStream) return myStream;
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: true,
+      // video: false,
       video: true,
     });
     setMyStream(stream);
@@ -306,25 +301,56 @@ export const MeetingRoom = () => {
   // This keeps video elements in the DOM so play() is never interrupted.
   const inMeeting = remoteStreams.length > 0;
 
+  const editorRef = useRef(null);
+
   useEffect(() => {
     const ydoc = new Y.Doc();
-
-    const provider = new WebrtcProvider(
-      params.meetingId, // room name = your meetingId ✅
-      ydoc, // the shared doc
-    );
-
     ydocRef.current = ydoc;
-    providerRef.current = provider;
+
+    // Listen for local changes and broadcast them
+    ydoc.on('update', (update, origin) => {
+      if (origin !== 'remote') {
+        socket.emit("yjs-update", { meetingId: params.meetingId, update });
+      }
+    });
+
+    // Handle incoming updates from peers
+    const handleYjsUpdate = ({ update }) => {
+      // update comes as an ArrayBuffer from Socket.io, apply to Y.Doc
+      Y.applyUpdate(ydoc, new Uint8Array(update), 'remote');
+    };
+
+    // When someone joins, they will ask for the state
+    const handleProvideState = () => {
+      const state = Y.encodeStateAsUpdate(ydoc);
+      socket.emit("yjs-update", { meetingId: params.meetingId, update: state });
+    };
+
+    socket.on("yjs-update", handleYjsUpdate);
+    socket.on("provide-yjs-state", handleProvideState);
+
+    // Ask for the current state when we join
+    socket.emit("request-yjs-state", { meetingId: params.meetingId });
+
+    if (editorRef.current && !bindingRef.current) {
+      bindingRef.current = new MonacoBinding(
+        ydoc.getText("monaco"), // shared text
+        editorRef.current.getModel(), // monaco model
+        new Set([editorRef.current]), // editor instance
+        null // no cursor sharing for now
+      );
+    }
 
     return () => {
       if (bindingRef.current) {
         bindingRef.current.destroy();
+        bindingRef.current = null;
       }
-      provider.destroy();
+      socket.off("yjs-update", handleYjsUpdate);
+      socket.off("provide-yjs-state", handleProvideState);
       ydoc.destroy();
     };
-  }, [params.meetingId]);
+  }, [params.meetingId, socket]);
 
   return (
     <>
@@ -442,12 +468,13 @@ export const MeetingRoom = () => {
               height="100%"
               language="javascript"
               onMount={(editor) => {
-                if (ydocRef.current && providerRef.current) {
+                editorRef.current = editor;
+                if (ydocRef.current && !bindingRef.current) {
                   bindingRef.current = new MonacoBinding(
                     ydocRef.current.getText("monaco"), // shared text
                     editor.getModel(), // monaco model
                     new Set([editor]), // editor instance
-                    providerRef.current.awareness, // cursor sharing
+                    null // no cursor sharing for now
                   );
                 }
               }}
